@@ -31,13 +31,12 @@ inputs:
     default: "linux-hpc-0.9.1"
 runs:
   using: "composite"
-  steps:   
-      uses: actions/cache@v2
+  uses: actions/cache@v2
       id: cache
       with:
         path: ~/coderrect-${{ inputs.toolVersion }}
         key: ${{ inputs.toolVersion }}
-     
+  steps:
     - name: Download Coderrect Package
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
