@@ -25,21 +25,47 @@ inputs:
     description: "Force Coderrect to exit with 0 even when races are detected"
     required: false
     default: false
+  toolVersion:
+    description: "Version of Coderrect to use"
+    required: false
+    default: "linux-hpc-0.9.1"
 runs:
   using: composite
   steps:
-    - run: | 
-        wget -q https://public-installer-pkg.s3.us-east-2.amazonaws.com/coderrect-linux-develop.tar.gz
+    
+    - name: Cache Coderrect Package
+      uses: actions/checkout@v2
+      id: cache
+      with:
+        path: ~/coderrect-${{ inputs.toolVersion }}
+        key: ${{ inputs.toolVersion }}
+     
+    - name: Download Coderrect Package
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cd $HOME
+        wget -q https://public-installer-pkg.s3.us-east-2.amazonaws.com/coderrect-${{ inputs.toolVersion }}.tar.gz
         tar zxf coderrect-linux-develop.tar.gz
-        echo "$PWD/coderrect-linux-develop/bin" >> $GITHUB_PATH
+     
+    - name: Install Coderrect Package
+      shell: bash
+      run: echo "$HOME/coderrect-linux-develop/bin" >> $GITHUB_PATH
+     
+    - name: Clean Build
+      shell: bash
+      run: |
         cd ${{ inputs.buildPath }}
         ${{ inputs.cleanCommand }}
+    
+    - name: Scan Project
       shell: bash
-    - run: |
+      run: |
         cd ${{ inputs.buildPath }}
         coderrect -noprogress ${{ inputs.options }} ${{ inputs.buildCommand }}
+    
+    - name: Upload Report  
       shell: bash
-    - run: |
+      run: |
         cd ${{ inputs.buildPath }}
         coderrect -publish.cloud="DEFAULT" -publish.exit0=${{ inputs.exit0 }}
-      shell: bash
