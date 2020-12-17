@@ -30,7 +30,6 @@ inputs:
     required: false
     default: "linux-hpc-0.9.1"
 runs:
-  using: composite
   steps:
     
     - name: Cache Coderrect Package
